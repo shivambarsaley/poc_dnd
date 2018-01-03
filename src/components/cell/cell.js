@@ -1,39 +1,43 @@
 import React from "react";
 import PropTypes from 'prop-types';
-import { DragSource, DropTarget } from 'react-dnd';
+import {DragSource, DropTarget} from 'react-dnd';
 
 
 const cardSource = {
   beginDrag(props) {
     console.log('STARTED');
-    console.log(props);
-    console.log(this.state);
+    // console.log({
+    //   sourceIndex: props.index,
+    //   selectedValue: props.selectedValue
+    // });
     return {
-      index: props.index,
+      sourceIndex: props.index,
       selectedValue: props.selectedValue
     };
   },
-  endDrag(props, monitor) {
-		const item = monitor.getItem();
-		const dropResult = monitor.getDropResult();
-    console.log('ENDED DROP', item, dropResult);
-    console.log(props);
-		if (dropResult) {
-			console.log(`You dropped ${item.index} into ${props.index}!`) // eslint-disable-line no-alert
-		}
-	}
+  // endDrag(props, monitor) {
+  // 	const item = monitor.getItem();
+  // 	const dropResult = monitor.getDropResult();
+  //  // console.log('ENDED DROP', item, dropResult);
+  //  // console.log(props);
+  // 	if (dropResult) {
+  // 		console.log(`You dropped ${item.index} into ${props.index}!`) // eslint-disable-line no-alert
+  // 	}
+  // }
 };
 
 const cardTarget = {
-  hover(props, monitor) {
-    const draggedId = monitor.getItem().index;
-    console.log(props, draggedId);
-    if (draggedId !== props.index) {
-      // props.moveCard(draggedId, props.id);
-    }
-  },
-  drop(props,monitor){
-    console.log(`You Dropped ${monitor.getItem().index} into ${props.index}`, props);
+  // hover(props, monitor) {
+  //   const draggedId = monitor.getItem().sourceIndex;
+  //   // console.log(props, draggedId);
+  //   if (draggedId !== props.index) {
+  //     // props.moveCard(draggedId, props.id);
+  //   }
+  // },
+  drop(props, monitor) {
+    // console.log(monitor.getItem().sourceIndex, props, 'RECEIVED IN DROP');
+    console.log(`You Dropped ${monitor.getItem().sourceIndex} into ${props.index}`, props);
+    props.copyValue(monitor.getItem().sourceIndex, props.index)
   }
 };
 
@@ -48,7 +52,7 @@ function collect(connect, monitor) {
 }
 
 const propTypes = {
-  value: PropTypes.string.isRequired,
+  value: PropTypes.string,
 
   // Injected by React DnD:
   isDragging: PropTypes.bool.isRequired,
@@ -67,9 +71,7 @@ const propTypes = {
 // }
 
 
-
 // Export the wrapped component:
-
 
 
 // @DropTarget('Cell', cardTarget, connect => ({
@@ -85,51 +87,70 @@ const propTypes = {
 class Cell extends React.Component {
 
   static propTypes = {
-		connectDragSource: PropTypes.func.isRequired,
-		isDragging: PropTypes.bool.isRequired,
-		value: PropTypes.string.isRequired,
-		index: PropTypes.number
-	}
+    connectDragSource: PropTypes.func.isRequired,
+    isDragging: PropTypes.bool.isRequired,
+    value: PropTypes.string,
+    index: PropTypes.number,
+    sourceIndex: PropTypes.number
+  }
+
   constructor(props) {
     super(props);
     this.state = {
-      value: 'complicated'
+      value: 'single'
     };
     this.handleChange = this.handleChange.bind(this);
+    props.selectValue(this.props.index, 'single');
   }
+
   handleChange(event) {
     // this.props.selectedValue = event.target.value;
     localStorage.setItem(`dropdown_${this.props.index}`, event.target.value);
-    this.setState({value: event.target.value});
+    // this.setState({value: event.target.value});
+    this.props.selectValue(this.props.index, event.target.value)
   }
-  componentWillReceiveProps(newProps){
-    const index = newProps.index;
-    console.log(index, 'IN RECEIVE PROPS');
-    this.setState({value: localStorage.getItem(`dropdown_${index}`)});
-  }
+
+  // componentWillReceiveProps(newProps){
+  //   // console.log(newProps);
+  //   // const index = newProps.sourceIndex;
+  //   // console.log(index, 'IN RECEIVE PROPS');
+  //   // if(index){
+  //   //   this.setState({value: localStorage.getItem(`dropdown_${index}`)});
+  //   // }
+  //   // else {
+  //   //   localStorage.setItem(`dropdown_${this.props.index}`, this.state.value);
+  //   // }
+  // }
   render() {
     // const {options} = this.state;
-    console.log('Called Again............', this.state.value, this.props.index);
-    const { isDragging, connectDragSource, connectDropTarget, text, options, index, selectedValue } = this.props;
-    localStorage.setItem(`dropdown_${index}`, this.state.value);
-    return(
-    connectDragSource(connectDropTarget(
-    <div>
-    <select value={this.state.value} onChange={this.handleChange}>
-      {options.map(value => <option value={value}>{value}</option>)}
-    </select>
-     </div>
-    ))
+    console.log('Rendering Component............', this.state.value, this.props.index, this.props.sourceIndex, 'IN RENDER');
+    const {isDragging, connectDragSource, connectDropTarget, text, options, index, selectedValue, sourceIndex, selectValue, copyValue, selection} = this.props;
+    // localStorage.setItem(`dropdown_${index}`, this.state.value);
+    const colors = ['blue', 'green', 'pink', 'yellow', 'black', 'gray', 'purple'];
+    const getRandomInt = (min, max) => {
+      min = Math.ceil(min);
+      max = Math.floor(max);
+      return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
+    };
+    return (
+      connectDropTarget(connectDragSource(
+        <div style={{backgroundColor: colors[getRandomInt(1, 10)]}}>
+          <select value={selection[index]} onChange={this.handleChange}>
+            {options.map(value => <option value={value}>{value}</option>)}
+          </select>
+        </div>
+      ))
     )
   }
 }
 
 Cell.propTypes = propTypes;
-Cell = DropTarget('Cell', cardTarget, connect => ({
-  connectDropTarget: connect.dropTarget(),
-}))(Cell);
+
 Cell = DragSource('Cell', cardSource, (connect, monitor) => ({
   connectDragSource: connect.dragSource(),
   isDragging: monitor.isDragging()
+}))(Cell);
+Cell = DropTarget('Cell', cardTarget, connect => ({
+  connectDropTarget: connect.dropTarget(),
 }))(Cell);
 export default Cell;
