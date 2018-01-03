@@ -1,8 +1,11 @@
 import {makeData, Logo, Tips} from "./Utils";
+import Cell from "../cell/cell";
 import React from "react";
 
 import ReactTable from "react-table";
 import "react-table/react-table.css";
+import { DragDropContextProvider } from 'react-dnd'
+import HTML5Backend from 'react-dnd-html5-backend'
 
 class Table extends React.Component {
   constructor() {
@@ -15,6 +18,7 @@ class Table extends React.Component {
   render() {
     const {data} = this.state;
     return (
+      <DragDropContextProvider backend={HTML5Backend}>
       <div>
         <ReactTable
           data={data}
@@ -44,9 +48,7 @@ class Table extends React.Component {
                   Header: "Status",
                   // accessor: "status"
                   Cell: row => (
-                    <select>
-                      {['single','complicated', 'relationship'].map(value => <option value={value}>{value}</option>)}
-                    </select>
+                    <Cell options={['single','complicated', 'relationship']} index={row.index}/>
                   )
                 }
               ]
@@ -66,6 +68,7 @@ class Table extends React.Component {
                         borderRadius: '2px'
                       }}
                     >
+                    <p>{console.log(row)}</p>
                       <div
                         style={{
                           width: `${row.value}%`,
@@ -90,6 +93,7 @@ class Table extends React.Component {
         {/*<Tips />*/}
         {/*<Logo />*/}
       </div>
+     </DragDropContextProvider>
     );
   }
 }

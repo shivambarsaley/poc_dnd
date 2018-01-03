@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Table from './components/table';
+import Table from './components/table/table';
 import logo from './logo.svg';
 import './App.css';
 
