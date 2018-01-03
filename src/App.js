@@ -10,6 +10,7 @@ class App extends Component {
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
           <h1 className="App-title">Welcome to React</h1>
+          <h3>Drag Drop Supported in the Status Column. Use alt key to do change everything in between </h3>
         </header>
         <Table/>
       </div>
