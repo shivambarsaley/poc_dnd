@@ -1,4 +1,4 @@
-import {makeData, Logo, Tips} from "./Utils";
+import {makeData} from "./Utils";
 import Cell from "../cell/cell";
 import React from "react";
 
@@ -20,7 +20,6 @@ class Table extends React.Component {
 
   selectValue(dragIndex, value) {
     const {selectedValues} = this.state;
-    console.log(selectedValues, '>>>>>>>>>>>>>>>>>>', dragIndex, value);
     let newState = selectedValues;
     if (!!selectedValues[dragIndex]) {
       newState = selectedValues.map((val, index) => {
@@ -30,21 +29,22 @@ class Table extends React.Component {
     else {
       newState[dragIndex] = value;
     }
-    console.log(newState, '<<<<<<<<<<<<<<<<<<<<<<<');
     this.setState({selectedValues: newState});
   }
 
-  copyValue(startIndex, endIndex) {
+  copyValue(startIndex, endIndex, mode) {
     const {selectedValues} = this.state;
     const newState = selectedValues.map((val, index) => {
-      return endIndex == index ? selectedValues[startIndex] : val;
+      if (mode === 'move') {
+        return endIndex === index ? selectedValues[startIndex] : val;
+      }
+      return index > startIndex && index <= endIndex ? selectedValues[startIndex] : val;
     });
     this.setState({selectedValues: newState});
   }
 
   render() {
     const {data} = this.state;
-    console.log(this.state.selectedValues);
     return (
       <DragDropContextProvider backend={HTML5Backend}>
         <div>
@@ -76,8 +76,9 @@ class Table extends React.Component {
                     Header: "Status",
                     // accessor: "status"
                     Cell: row => (
-                      <Cell options={['single', 'complicated', 'relationship']} index={row.index} sourceIndex={null}
-                            selectValue={this.selectValue} key={row.index} copyValue={this.copyValue}
+                      <Cell key={row.index.toString()} options={['single', 'complicated', 'relationship']}
+                            index={row.index} sourceIndex={null}
+                            selectValue={this.selectValue} copyValue={this.copyValue}
                             selection={this.state.selectedValues}/>
                     )
                   }
@@ -98,7 +99,6 @@ class Table extends React.Component {
                           borderRadius: '2px'
                         }}
                       >
-                        <p>{console.log(row)}</p>
                         <div
                           style={{
                             width: `${row.value}%`,
@@ -120,8 +120,6 @@ class Table extends React.Component {
             className="-striped -highlight"
           />
           <br/>
-          {/*<Tips />*/}
-          {/*<Logo />*/}
         </div>
       </DragDropContextProvider>
     );
